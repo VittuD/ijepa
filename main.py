@@ -15,6 +15,10 @@ import yaml
 from src.utils.distributed import init_distributed
 from src.train import main as app_main
 
+import torch
+
+from src.utils.wandb_utils import init_wandb, wandb
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '--fname', type=str,
@@ -22,10 +26,11 @@ parser.add_argument(
     default='configs.yaml')
 parser.add_argument(
     '--devices', type=str, nargs='+', default=['cuda:0'],
-    help='which devices to use on local machine')
+    help='which devices to use on local machine; use "all" to select every available GPU')
 
 
 def process_main(rank, fname, world_size, devices):
+    
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = str(devices[rank].split(':')[-1])
 
@@ -49,11 +54,22 @@ def process_main(rank, fname, world_size, devices):
 
     world_size, rank = init_distributed(rank_and_world_size=(rank, world_size))
     logger.info(f'Running... (rank: {rank}/{world_size})')
+    if rank > 0:
+        logger.setLevel(logging.ERROR)
+
+    # -- initialize W&B (only rank 0 will actually create a run)
+    wandb_run = init_wandb(params, rank)
+
     app_main(args=params)
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
+
+    if 'all' in args.devices:
+        device_count = torch.cuda.device_count()
+        args.devices = [f'cuda:{i}' for i in range(device_count)]
+        print(f"Auto-detected {device_count} GPUs: {args.devices}")
 
     num_gpus = len(args.devices)
     mp.set_start_method('spawn')
