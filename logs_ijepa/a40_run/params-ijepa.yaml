@@ -1,35 +1,24 @@
 data:
-  # Adjusted for A40 (48GB). 
-  # Original was 128 (for A100 80GB). 64 should fit comfortably on A40.
-  batch_size: 64 
+  batch_size: 64
   color_jitter_strength: 0.0
   crop_scale:
   - 0.3
   - 1.0
   crop_size: 224
-  # Your folder structure has 'train' directly inside the root, 
-  # so we leave image_folder empty or use dot (.)
-  image_folder: . 
+  image_folder: .
   num_workers: 10
   pin_mem: true
-  # The path you provided in your prompt
   root_path: /shared/datasets/classification/imagenet-16
   use_color_distortion: false
   use_gaussian_blur: false
   use_horizontal_flip: false
 logging:
-  folder: ./logs_ijepa/a40_run_small
-  write_tag: jepa
+  folder: ./logs_ijepa/a40_run
   wandb:
     enable: true
-    project: ijepa_gate_loss
     entity: vitturini-davide
-    # all below are optional:
-    # run_name: custom-name
-    # group: custom-group
-    # tags: ["extra-tag1", "extra-tag2"]
-    # secrets_file: .secrets
-    # mode: offline
+    project: ijepa_gate_loss
+  write_tag: jepa
 mask:
   allow_overlap: false
   aspect_ratio:
@@ -48,7 +37,7 @@ mask:
 meta:
   copy_data: false
   load_checkpoint: false
-  model_name: vit_small
+  model_name: vit_base
   pred_depth: 12
   pred_emb_dim: 384
   read_checkpoint: null
